@@ -7,6 +7,7 @@ pub struct ComputerInfo {
     vendor: String,
     product_family: String,
     product_name: String,
+    disk: Vec<String>,
 }
 impl ComputerInfo {
     const HARDWARE_VENDOR_REPLACMENT: [(&'static str, &'static str); 2] =
@@ -71,6 +72,7 @@ impl ComputerInfo {
             product_family: Self::grep_product_family(&v)?,
             product_name: Self::grep_product_name()?,
             vendor: v,
+            disk: Self::list_block_device()?,
         })
     }
 
@@ -160,9 +162,8 @@ impl ComputerInfo {
         Ok(contents.trim() == "0")
     }
 
-    pub fn has_hdd() -> bool {
-        let list_block = Self::list_block_device().expect("Impossible to get disk devices");
-        for device in list_block {
+    pub fn has_hdd(&self) -> bool {
+        for device in &self.disk {
             match Self::is_hdd(&device) {
                 Ok(true) => return true,
                 Ok(false) => continue,
@@ -172,9 +173,8 @@ impl ComputerInfo {
         return false;
     }
 
-    pub fn has_ssd() -> bool {
-        let list_block = Self::list_block_device().expect("Impossible to get disk devices");
-        for device in list_block {
+    pub fn has_ssd(&self) -> bool {
+        for device in &self.disk {
             match Self::is_ssd(&device) {
                 Ok(true) => return true,
                 Ok(false) => continue,
