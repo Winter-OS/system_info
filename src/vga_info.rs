@@ -9,7 +9,8 @@ pub struct VgaInfo {
 }
 
 impl VgaInfo {
-    const NVIDIA_GEN_CHIPSET: [(&'static str, &'static str); 7] = [
+    const NVIDIA_GEN_CHIPSET: [(&'static str, &'static str); 8] = [
+        ("GF", "fermi"),
         ("GK", "kepler"),
         ("GM", "maxwell"),
         ("GP", "pascal"),

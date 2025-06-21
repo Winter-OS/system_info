@@ -1,6 +1,6 @@
-use std::fs;
 use std::path::Path;
 use std::process::Command;
+use std::{fs, io};
 
 #[derive(Debug)]
 pub struct ComputerInfo {
@@ -135,10 +135,52 @@ impl ComputerInfo {
         return false;
     }
 
-    pub fn has_hdd() -> bool {
-        match fs::read_to_string("/sys/block/sda/queue/rotational") {
-            Ok(statue) => return statue.trim().eq("1"),
-            Err(_) => false,
+    fn list_block_device() -> io::Result<Vec<String>> {
+        let mut devices = Vec::new();
+        for entry in fs::read_dir("/sys/block")? {
+            let entry = entry?;
+            let name = entry.file_name().to_string_lossy().into_owned();
+            // Optionnel : ignorer les périphériques loop ou ram
+            if name.starts_with("sd") || name.starts_with("nvme") {
+                devices.push(name);
+            }
         }
+        Ok(devices)
+    }
+
+    fn is_hdd(device: &str) -> io::Result<bool> {
+        let path = format!("/sys/block/{}/queue/rotational", device);
+        let contents = fs::read_to_string(path)?;
+        Ok(contents.trim() == "1")
+    }
+
+    fn is_ssd(device: &str) -> io::Result<bool> {
+        let path = format!("/sys/block/{}/queue/rotational", device);
+        let contents = fs::read_to_string(path)?;
+        Ok(contents.trim() == "0")
+    }
+
+    pub fn has_hdd() -> bool {
+        let list_block = Self::list_block_device().expect("Impossible to get disk devices");
+        for device in list_block {
+            match Self::is_hdd(&device) {
+                Ok(true) => return true,
+                Ok(false) => continue,
+                Err(_) => panic!("Error: impossible to read disk info"),
+            }
+        }
+        return false;
+    }
+
+    pub fn has_ssd() -> bool {
+        let list_block = Self::list_block_device().expect("Impossible to get disk devices");
+        for device in list_block {
+            match Self::is_ssd(&device) {
+                Ok(true) => return true,
+                Ok(false) => continue,
+                Err(_) => panic!("Error: impossible to read disk info"),
+            }
+        }
+        return false;
     }
 }
