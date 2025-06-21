@@ -72,7 +72,10 @@ impl ComputerInfo {
             product_family: Self::grep_product_family(&v)?,
             product_name: Self::grep_product_name()?,
             vendor: v,
-            disk: Self::list_block_device()?,
+            disk: match Self::list_block_device() {
+                Ok(l) => l,
+                Err(_) => return Err(String::from("Error read block devies")),
+            },
         })
     }
 
