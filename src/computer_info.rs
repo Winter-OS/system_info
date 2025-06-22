@@ -13,9 +13,9 @@ impl ComputerInfo {
     const HARDWARE_VENDOR_REPLACMENT: [(&'static str, &'static str); 2] =
         [("Hewlett-Packard", "hp"), ("Hewlett Packard", "hp")];
 
-    const FAMILY_EXCEPTION_RULES: [(&'static str, [(&'static str, &'static str); 2]); 1] = [(
+    const FAMILY_EXCEPTION_RULES: [(&'static str, &[(&'static str, &'static str)]); 1] = [(
         "framework",
-        [("13in laptop", "13inch"), ("16in laptop", "16inch")],
+        &[("13in laptop", "13inch"), ("16in laptop", "16inch")],
     )];
 
     fn grep_vendor() -> Result<String, String> {
@@ -34,7 +34,7 @@ impl ComputerInfo {
 
     fn grep_product_family(vendor: &str) -> Result<String, String> {
         let family = match fs::read_to_string("/sys/devices/virtual/dmi/id/product_family") {
-            Ok(vendor) => Ok(vendor.trim().to_string()),
+            Ok(f) => Ok(f.trim().to_string()),
             Err(e) => Err(format!(
                 "Impossible to get product family : {}",
                 e.to_string()
